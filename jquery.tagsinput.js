@@ -35,7 +35,7 @@
 	        newWidth = (testerWidth + o.comfortZone) >= minWidth ? testerWidth + o.comfortZone : minWidth,
 	        currentWidth = input.width(),
 	        isValidWidthChange = (newWidth < currentWidth && newWidth >= minWidth)
-	                             || (newWidth > minWidth && newWidth < maxWidth);
+	                            || (newWidth > minWidth && newWidth < maxWidth);
 	
 	    // Animate width
 	    if (isValidWidthChange) {
@@ -79,7 +79,7 @@
 				var id = $(this).attr('id');
 
 				var tagslist = $(this).val().split(delimiter[id]);
-				if (tagslist[0] == '') { 
+				if (tagslist[0] === '') { 
 					tagslist = new Array();
 				}
 
@@ -87,7 +87,7 @@
 		
 				if (options.unique) {
 					var skipTag = $(this).tagExist(value);
-					if(skipTag == true) {
+					if(skipTag === true) {
 					    //Marks fake input as not_valid to let styling it
     				    $('#'+id+'_tag').addClass('not_valid');
     				}
@@ -95,7 +95,7 @@
 					var skipTag = false; 
 				}
 				
-				if (value !='' && skipTag != true) { 
+				if (value !=='' && skipTag !== true) { 
                     $('<span>').addClass('tag').append(
                         $('<span>').text(value).append('&nbsp;&nbsp;'),
                         $('<a>', {
@@ -172,7 +172,7 @@
                 id = $(this).attr('id');
 		$('#'+id+'_tagsinput .tag').remove();
 		$.fn.tagsInput.importTags(this,str);
-	}
+	};
 		
 	$.fn.tagsInput = function(options) { 
     var settings = jQuery.extend({
@@ -232,7 +232,7 @@
 			$(data.holder).css('min-height',settings.height);
 			$(data.holder).css('height','100%');
 	
-			if ($(data.real_input).val()!='') { 
+			if ($(data.real_input).val()!=='') { 
 				$.fn.tagsInput.importTags($(data.real_input),$(data.real_input).val());
 			}		
 			if (settings.interactive) { 
@@ -251,7 +251,7 @@
 					$(event.data.fake_input).css('color','#000000');		
 				});
 						
-				if (settings.autocomplete_url != undefined) {
+				if (settings.autocomplete_url !== undefined) {
 					autocomplete_options = {source: settings.autocomplete_url};
 					for (attrname in settings.autocomplete) { 
 						autocomplete_options[attrname] = settings.autocomplete[attrname]; 
@@ -278,9 +278,13 @@
 						// this is only available if autocomplete is not used.
 						$(data.fake_input).bind('blur',data,function(event) { 
 							var d = $(this).attr('data-default');
-							if ($(event.data.fake_input).val()!='' && $(event.data.fake_input).val()!=d) { 
-								if( (event.data.minChars <= $(event.data.fake_input).val().length) && (!event.data.maxChars || (event.data.maxChars >= $(event.data.fake_input).val().length)) )
-									$(event.data.real_input).addTag($(event.data.fake_input).val(),{focus:true,unique:(settings.unique)});
+							if ($(event.data.fake_input).val()!=='' && $(event.data.fake_input).val()!==d) { 
+								if( (event.data.minChars <= $(event.data.fake_input).val().length) && (!event.data.maxChars || (event.data.maxChars >= $(event.data.fake_input).val().length)))
+                //capitalize new tag
+									$(event.data.real_input).addTag($(event.data.fake_input).val().toLowerCase().replace(/\b[a-z]/g, function(letter){return letter.toUpperCase();}),{focus:true,unique:(settings.unique)});
+                // origin new tag
+                // $(event.data.real_input).addTag($(event.data.fake_input).val(),{focus:true,unique:(settings.unique)});
+                        
 							} else {
 								$(event.data.fake_input).val($(event.data.fake_input).attr('data-default'));
 								$(event.data.fake_input).css('color',settings.placeholderColor);
@@ -293,8 +297,12 @@
 				$(data.fake_input).bind('keypress',data,function(event) {
 					if (event.which==event.data.delimiter.charCodeAt(0) || event.which==13 ) {
 					    event.preventDefault();
-						if( (event.data.minChars <= $(event.data.fake_input).val().length) && (!event.data.maxChars || (event.data.maxChars >= $(event.data.fake_input).val().length)) )
-							$(event.data.real_input).addTag($(event.data.fake_input).val(),{focus:true,unique:(settings.unique)});
+						if( (event.data.minChars <= $(event.data.fake_input).val().length) && (!event.data.maxChars || (event.data.maxChars >= $(event.data.fake_input).val().length)))
+            //capitalize new tag
+							$(event.data.real_input).addTag($(event.data.fake_input).val().toLowerCase().replace(/\b[a-z]/g, function(letter){return letter.toUpperCase();}),{focus:true,unique:(settings.unique)});
+            //origin new tag
+            // $(event.data.real_input).addTag($(event.data.fake_input).val(),{focus:true,unique:(settings.unique)});
+            
 					  	$(event.data.fake_input).resetAutosize(settings);
 						return false;
 					} else if (event.data.autosize) {
@@ -305,7 +313,7 @@
 				//Delete last tag on backspace
 				data.removeWithBackspace && $(data.fake_input).bind('keydown', function(event)
 				{
-					if(event.keyCode == 8 && $(this).val() == '')
+					if(event.keyCode === 8 && $(this).val() === '')
 					{
 						 event.preventDefault();
 						 var last_tag = $(this).closest('.tagsinput').find('.tag:last').text();
@@ -335,6 +343,12 @@
 	$.fn.tagsInput.updateTagsField = function(obj,tagslist) { 
 		var id = $(obj).attr('id');
 		$(obj).val(tagslist.join(delimiter[id]));
+		if(tags_callbacks[id] && tags_callbacks[id]['onChange'])
+		{
+			var i = tagslist.length;
+			var f = tags_callbacks[id]['onChange'];
+			f.call(obj, obj, tagslist[i]);
+		}
 	};
 	
 	$.fn.tagsInput.importTags = function(obj,val) {			
